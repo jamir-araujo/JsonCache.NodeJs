@@ -25,7 +25,7 @@ describe("cache", () => {
 
             var cachedObj = cache.get(key);
 
-            assert.equal(cachedObj, obj, "cachedObj as obj should be the same");
+            assert.equal(cachedObj, obj, "cachedObj and obj should be the same");
         });
 
     });
