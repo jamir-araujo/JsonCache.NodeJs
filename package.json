@@ -1,0 +1,22 @@
+{
+  "name": "jsoncache-nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha ./build/tests",
+    "build": "gulp build"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.0.0",
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-sourcemaps": "^2.6.0",
+    "gulp-typescript": "^3.1.7",
+    "mocha": "^3.4.2",
+    "run-sequence": "^1.2.2",
+    "typescript": "^2.3.3"
+  }
+}
