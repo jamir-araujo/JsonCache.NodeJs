@@ -1,7 +1,7 @@
 import { notNull } from "./check";
 
 export default class ObjectInspector {
-    inspectObject(value: any, cacheItemFounded: (value: any) => void): void {
+    inspectObject(value: any, cacheItemFounded: Action<any>): void {
         notNull(value, "value");
         notNull(cacheItemFounded, "cacheItemFounded");
 
@@ -13,11 +13,16 @@ export default class ObjectInspector {
             return;
         }
 
-        if (value instanceof Array){
+        if (value instanceof Array) {
 
-        } else {
+        } else if (value instanceof Object) {
             cacheItemFounded(value);
 
+            for (var key in value) {
+                if (value.hasOwnProperty(key)) {
+                    this.inspectObjectInternal(value[key], cacheItemFounded, workingItems);
+                }
+            }
         }
     }
 }
