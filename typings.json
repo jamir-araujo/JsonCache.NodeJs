@@ -1,8 +1,11 @@
 {
   "name": "jsoncache-nodejs",
-  "dependencies": {},
+  "dependencies": {
+    "node-cache": "registry:dt/node-cache#3.0.0+20170118061222"
+  },
   "globalDependencies": {
     "chai": "registry:dt/chai#3.4.0+20170217154556",
-    "mocha": "registry:dt/mocha#2.2.5+20170311011848"
+    "mocha": "registry:dt/mocha#2.2.5+20170311011848",
+    "node": "registry:dt/node#7.0.0+20170322231424"
   }
 }
