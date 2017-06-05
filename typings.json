@@ -1,7 +1,8 @@
 {
   "name": "jsoncache-nodejs",
   "dependencies": {
-    "node-cache": "registry:dt/node-cache#3.0.0+20170118061222"
+    "node-cache": "registry:dt/node-cache#3.0.0+20170118061222",
+    "node-uuid": "registry:npm/node-uuid#1.4.7+20160723033700"
   },
   "globalDependencies": {
     "chai": "registry:dt/chai#3.4.0+20170217154556",
