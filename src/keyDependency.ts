@@ -7,7 +7,7 @@ export abstract class KeyDependency {
     abstract setValue(owner: Object, value: any): void;
 }
 
-export class EnchainedIndexedKeyDependency extends KeyDependency {
+export class ChainedIndexedKeyDependency extends KeyDependency {
     private _propertyName: string;
     private _keyDependency: KeyDependency;
     private _index: number;
@@ -97,7 +97,7 @@ export class IndexedKeyDependency extends KeyDependency {
 
 }
 
-export class EnchainedKeyDependency extends KeyDependency {
+export class ChainedKeyDependency extends KeyDependency {
     private _propertyName: string;
     private _keyDependency: KeyDependency;
 
@@ -140,7 +140,7 @@ export class DirectKeyDependency extends KeyDependency {
 
     constructor(propertyName: string, dependentKey: string) {
         super();
-        
+
         notNull(propertyName, "propertyName");
         notNull(dependentKey, "dependentKey");
 

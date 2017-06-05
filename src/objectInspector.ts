@@ -1,5 +1,5 @@
 import { notNull } from "./check";
-import { KeyDependency, DirectKeyDependency, EnchainedIndexedKeyDependency, EnchainedKeyDependency, IndexedKeyDependency } from "./keyDependency";
+import { KeyDependency, DirectKeyDependency, ChainedIndexedKeyDependency, ChainedKeyDependency, IndexedKeyDependency } from "./keyDependency";
 
 type CallBack = CacheItemFounded<Object, nullable<KeyDependency>, nullable<string>>;
 
@@ -66,7 +66,7 @@ export default class ObjectInspector {
                 throw "needed to create DirectKeyDependency but dependentKey was null";
             }
         } else {
-            keyDependency = new EnchainedKeyDependency(propertyName, keyDependency);
+            keyDependency = new ChainedKeyDependency(propertyName, keyDependency);
         }
 
         this.inspectObjectInternal(propertyValue, cacheItemFounded, workingItems, keyDependency);
@@ -90,7 +90,7 @@ export default class ObjectInspector {
                     throw "needed to create IndexedKeyDependency but dependentKey was null";
                 }
             } else {
-                keyDependency = new EnchainedIndexedKeyDependency(propertyName, keyDependency, index);
+                keyDependency = new ChainedIndexedKeyDependency(propertyName, keyDependency, index);
             }
 
             this.inspectObjectInternal(element, cacheItemFounded, workingItems, keyDependency);
