@@ -27,6 +27,10 @@ describe("ChainedKeyDependency", () => {
         });
     });
 
+    describe("dependedKey", () => {
+        
+    });
+
     describe("getValue(object): Object | null", () => {
 
         it("should throw exception if owner is null", () => {
