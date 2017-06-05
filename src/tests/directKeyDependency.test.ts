@@ -3,7 +3,7 @@ import { DirectKeyDependency } from "../keyDependency";
 
 describe("DirectKeyDependency", () => {
 
-    describe("constructor", () => {
+    describe("constructor(string, string)", () => {
 
         it("should throw exception if propertyName is null", () => {
             var nullValue: any = null;

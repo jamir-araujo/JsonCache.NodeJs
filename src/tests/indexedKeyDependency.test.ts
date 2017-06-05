@@ -1,25 +1,25 @@
 import { assert, expect } from "chai";
-import { IndexedKeyDependency } from "../keyDependency";
+import { DirectIndexedKeyDependency } from "../keyDependency";
 
-describe("IndexedKeyDependency", () => {
-    describe("constructor", () => {
+describe("DirectIndexedKeyDependency", () => {
+    describe("constructor(string, string, number)", () => {
 
         it("should throw exception if propertyName is null", () => {
             var nullValue: any = null;
-            expect(() => new IndexedKeyDependency(nullValue, "", 0))
+            expect(() => new DirectIndexedKeyDependency(nullValue, "", 0))
                 .to
                 .throw("parameter propertyName can not be null");
         });
 
         it("should throw exception if dependentKey is null", () => {
             var nullValue: any = null;
-            expect(() => new IndexedKeyDependency("", nullValue, -1))
+            expect(() => new DirectIndexedKeyDependency("", nullValue, -1))
                 .to
                 .throw("parameter dependentKey can not be null");
         });
 
         it("should throw exception if index is less than zero", () => {
-            expect(() => new IndexedKeyDependency("", "", -1))
+            expect(() => new DirectIndexedKeyDependency("", "", -1))
                 .to
                 .throw("parameter index should be greater than zero");
         });
@@ -28,7 +28,7 @@ describe("IndexedKeyDependency", () => {
     describe("getValue(object): Object | null", () => {
 
         it("should throw exception if owner is null", () => {
-            var keyDependency = new IndexedKeyDependency("innerObject", "gibberish", 0);
+            var keyDependency = new DirectIndexedKeyDependency("innerObject", "gibberish", 0);
 
             var theObject: any = null;
             expect(() => keyDependency.getValue(theObject))
@@ -37,7 +37,7 @@ describe("IndexedKeyDependency", () => {
         });
 
         it("should return null if the property do not exists", () => {
-            var keyDependency = new IndexedKeyDependency("theArray", "gibberish", 0);
+            var keyDependency = new DirectIndexedKeyDependency("theArray", "gibberish", 0);
 
             var value = keyDependency.getValue({});
 
@@ -45,7 +45,7 @@ describe("IndexedKeyDependency", () => {
         });
 
         it("should return null if the index is greater than the array", () => {
-            var keyDependency = new IndexedKeyDependency("theArray", "gibberish", 1);
+            var keyDependency = new DirectIndexedKeyDependency("theArray", "gibberish", 1);
 
             var value = keyDependency.getValue({ theArray: [{}] });
 
@@ -53,7 +53,7 @@ describe("IndexedKeyDependency", () => {
         });
 
         it("should return the correct value for the index of the array", () => {
-            var keyDependency = new IndexedKeyDependency("theArray", "gibberish", 0);
+            var keyDependency = new DirectIndexedKeyDependency("theArray", "gibberish", 0);
             var theObject = {};
 
             var value = keyDependency.getValue({ theArray: [theObject] });
@@ -66,7 +66,7 @@ describe("IndexedKeyDependency", () => {
     describe("setValue(Object, any): void", () => {
 
         it("should throw exception if owner is null", () => {
-            var keyDependency = new IndexedKeyDependency("innerObject", "gibberish", 0);
+            var keyDependency = new DirectIndexedKeyDependency("innerObject", "gibberish", 0);
 
             var theObject: any = null;
             expect(() => keyDependency.setValue(theObject, null))
@@ -75,7 +75,7 @@ describe("IndexedKeyDependency", () => {
         });
 
         it("should do nothing if the index do not exist on the array", () => {
-            var keyDependency = new IndexedKeyDependency("theArray", "gibberish", 0);
+            var keyDependency = new DirectIndexedKeyDependency("theArray", "gibberish", 0);
             var arrayObject = {};
             var theObject = { theArray: [] };
 
@@ -85,7 +85,7 @@ describe("IndexedKeyDependency", () => {
         });
 
         it("should ", () => {
-            var keyDependency = new IndexedKeyDependency("theArray", "gibberish", 0);
+            var keyDependency = new DirectIndexedKeyDependency("theArray", "gibberish", 0);
             var arrayObject = {};
             var theObject = { theArray: [] };
 

@@ -53,7 +53,7 @@ export class ChainedIndexedKeyDependency extends KeyDependency {
     }
 }
 
-export class IndexedKeyDependency extends KeyDependency {
+export class DirectIndexedKeyDependency extends KeyDependency {
     private _propertyName: string;
     private _dependentKey: string;
     private _index: number;
@@ -85,6 +85,7 @@ export class IndexedKeyDependency extends KeyDependency {
 
         return null;
     }
+
     setValue(owner: Object, value: any): void {
         notNull(owner, "owner");
 
@@ -108,19 +109,28 @@ export class ChainedKeyDependency extends KeyDependency {
     constructor(propertyName: string, keyDependency: KeyDependency) {
         super();
 
+        notNull(propertyName, "propertyName");
+        notNull(keyDependency, "keyDependency");
+
         this._propertyName = propertyName;
         this._keyDependency = keyDependency;
     }
 
     getValue(owner: Object): Object | null {
+        notNull(owner, "owner");
+
         var parentOwner = this._keyDependency.getValue(owner);
 
         if (parentOwner !== null) {
-            return owner[this._propertyName];
+            var value = parentOwner[this._propertyName];
+            if (value !== undefined){
+                return value;
+            }
         }
 
         return null;
     }
+
     setValue(owner: Object, value: any): void {
         var parentOwner = this._keyDependency.getValue(owner);
 
@@ -158,6 +168,7 @@ export class DirectKeyDependency extends KeyDependency {
 
         return null;
     }
+
     setValue(owner: Object, value: any): void {
         notNull(owner, "owner");
 

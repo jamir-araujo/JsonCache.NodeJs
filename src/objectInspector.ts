@@ -1,5 +1,5 @@
 import { notNull } from "./check";
-import { KeyDependency, DirectKeyDependency, ChainedIndexedKeyDependency, ChainedKeyDependency, IndexedKeyDependency } from "./keyDependency";
+import { KeyDependency, DirectKeyDependency, ChainedIndexedKeyDependency, ChainedKeyDependency, DirectIndexedKeyDependency } from "./keyDependency";
 
 type CallBack = CacheItemFounded<Object, nullable<KeyDependency>, nullable<string>>;
 
@@ -85,7 +85,7 @@ export default class ObjectInspector {
 
             if (keyDependency === null) {
                 if (dependentKey !== null) {
-                    keyDependency = new IndexedKeyDependency(propertyName, dependentKey, index);
+                    keyDependency = new DirectIndexedKeyDependency(propertyName, dependentKey, index);
                 } else {
                     throw "needed to create IndexedKeyDependency but dependentKey was null";
                 }
