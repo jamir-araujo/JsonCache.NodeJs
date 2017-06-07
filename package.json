@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha ./build/tests",
+    "test": "mocha build/tests",
     "build": "gulp build"
   },
   "author": "",

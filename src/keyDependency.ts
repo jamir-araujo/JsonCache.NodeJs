@@ -120,11 +120,9 @@ export class ChainedKeyDependency extends KeyDependency {
         notNull(owner, "owner");
 
         var parentOwner = this._keyDependency.getValue(owner);
-
         if (parentOwner !== null) {
-            var value = parentOwner[this._propertyName];
-            if (value !== undefined){
-                return value;
+            if (parentOwner.hasOwnProperty(this._propertyName)) {
+                return parentOwner[this._propertyName];
             }
         }
 
@@ -161,9 +159,8 @@ export class DirectKeyDependency extends KeyDependency {
     getValue(owner: Object): Object | null {
         notNull(owner, "owner");
 
-        var value = owner[this._propertyName];
-        if (value !== undefined) {
-            return value;
+        if (owner.hasOwnProperty(this._propertyName)) {
+            return owner[this._propertyName];
         }
 
         return null;
@@ -172,6 +169,9 @@ export class DirectKeyDependency extends KeyDependency {
     setValue(owner: Object, value: any): void {
         notNull(owner, "owner");
 
-        owner[this._propertyName] = value;
+        var currentValue = this.getValue(owner);
+        if (currentValue !== null) {
+            owner[this._propertyName] = value;
+        }
     }
 }

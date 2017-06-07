@@ -70,14 +70,14 @@ describe("DirectKeyDependency", () => {
             assert.equal(theObject.innerObject, innerObject, "theObject.innerObject should be equal innerObject");
         });
 
-        it("should create the property if does not exists", () => {
+        it("should not set the value if the property is null or does not exist", () => {
             var keyDependency = new DirectKeyDependency("innerObject", "gibberish");
             var innerObject = { value: 2 };
             var theObject: any = { id: 1 };
 
             keyDependency.setValue(theObject, innerObject);
 
-            assert.equal(theObject.innerObject, innerObject, "theObject.innerObject should be equal innerObject");
+            assert.isUndefined(theObject.innerObject, "theObject.innerObject should be undefined");
         });
     });
 });
