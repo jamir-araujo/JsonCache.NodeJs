@@ -25,6 +25,16 @@ describe("DirectIndexedKeyDependency", () => {
         });
     });
 
+    describe("dependentKey", () => {
+
+        it("should return the correct value", () => {
+            var testKey = "TestKey";
+            var keyDependency = new DirectIndexedKeyDependency("array", testKey, 0);
+
+            assert.equal(keyDependency.dependentKey, testKey, "keyDependency.dependentKey is not equal to testKey");
+        });
+    });
+
     describe("getValue(object): Object | null", () => {
 
         it("should throw exception if owner is null", () => {
@@ -41,7 +51,7 @@ describe("DirectIndexedKeyDependency", () => {
 
             var value = keyDependency.getValue({});
 
-            assert.isNull(value, "value should be null");
+            assert.isNull(value, "value is not null");
         });
 
         it("should return null if the index is greater than the array", () => {
@@ -49,7 +59,7 @@ describe("DirectIndexedKeyDependency", () => {
 
             var value = keyDependency.getValue({ theArray: [{}] });
 
-            assert.isNull(value, "value should be null");
+            assert.isNull(value, "value is not null");
         });
 
         it("should return the correct value for the index of the array", () => {
@@ -58,9 +68,8 @@ describe("DirectIndexedKeyDependency", () => {
 
             var value = keyDependency.getValue({ theArray: [theObject] });
 
-            assert.equal(value, theObject, "value should be equal to testObject");
+            assert.equal(value, theObject, "value is not equal to testObject");
         });
-
     });
 
     describe("setValue(Object, any): void", () => {
@@ -81,18 +90,31 @@ describe("DirectIndexedKeyDependency", () => {
 
             keyDependency.setValue(theObject, arrayObject);
 
-            assert.equal(theObject.theArray.length, 0, "theObject.theArray.length should be 0");
+            assert.equal(theObject.theArray.length, 0, "theObject.theArray.length is not 0");
         });
 
-        it("should ", () => {
-            var keyDependency = new DirectIndexedKeyDependency("theArray", "gibberish", 0);
+        it("should do nothing if the index is graeter than the array", () => {
+            var keyDependency = new DirectIndexedKeyDependency("theArray", "gibberish", 1);
             var arrayObject = {};
             var theObject = { theArray: [] };
 
             keyDependency.setValue(theObject, arrayObject);
 
-            assert.equal(theObject.theArray.length, 0, "theObject.theArray.length should be 0");
+            assert.equal(theObject.theArray.length, 0, "theObject.theArray.length is not 0");
         });
 
+        it("should do nothing if the value on the index is null or undefined", () => {
+            var keyDependency1 = new DirectIndexedKeyDependency("theArray", "gibberish", 0);
+            var keyDependency2 = new DirectIndexedKeyDependency("theArray", "gibberish", 1);
+
+            var arrayObject = {};
+            var theObject = { theArray: [null, undefined] };
+
+            keyDependency1.setValue(theObject, arrayObject);
+            keyDependency2.setValue(theObject, arrayObject);
+
+            assert.isNull(theObject.theArray[0], "theObject.theArray[0] is not null");
+            assert.isUndefined(theObject.theArray[1], "theObject.theArray[0] is not undefined");
+        });
     });
 });

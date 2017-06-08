@@ -22,8 +22,8 @@ describe("ObjectInspector", () => {
                 return tryGetKey(value);
             });
 
-            assert.equal(keyDependencies.length, 1, "callCount should be 1");
-            assert.isNull(keyDependencies[0], "keyDependencies[0] should be null");
+            assert.equal(keyDependencies.length, 1, "callCount is not 1");
+            assert.isNull(keyDependencies[0], "keyDependencies[0] is not null");
         });
 
         it("should call cacheItemFounded twice, one with keyDependency null and the second with value", () => {
@@ -37,13 +37,13 @@ describe("ObjectInspector", () => {
                 return tryGetKey(value);
             });
 
-            assert.equal(keyDependencies.length, 2, "keyDependencies.length should be 2");
-            assert.isNull(keyDependencies[0], "keyDependencies[0] should be null");
-            assert.isNotNull(keyDependencies[1], "keyDependencies[1] should not be null");
+            assert.equal(keyDependencies.length, 2, "keyDependencies.length is not 2");
+            assert.isNull(keyDependencies[0], "keyDependencies[0] is not null");
+            assert.isNotNull(keyDependencies[1], "keyDependencies[1] is null");
 
             var keyDependency = keyDependencies[1];
             if (keyDependency !== null) {
-                assert.equal(complexObjectKey, keyDependency.dependedKey, "keyDependency.dependedKey should be equal to complexObjectKey");
+                assert.equal(complexObjectKey, keyDependency.dependentKey, "keyDependency.dependedKey is not equal to complexObjectKey");
             }
         });
     });

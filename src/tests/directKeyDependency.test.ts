@@ -20,6 +20,16 @@ describe("DirectKeyDependency", () => {
         });
     });
 
+    describe("dependentKey", () => {
+
+        it("should return the correct value", () => {
+            var testKey = "TestKey";
+            var keyDependency = new DirectKeyDependency("property", testKey);
+
+            assert.equal(keyDependency.dependentKey, testKey, "keyDependency.dependentKey is not equal to testKey");
+        });
+    });
+
     describe("getValue(object): Object | null", () => {
 
         it("should throw exception if owner is null", () => {
@@ -36,7 +46,7 @@ describe("DirectKeyDependency", () => {
 
             var value = keyDependency.getValue({});
 
-            assert.isNull(value, "value should be null");
+            assert.isNull(value, "value is not null");
         });
 
         it("should return the correct value", () => {
@@ -45,7 +55,7 @@ describe("DirectKeyDependency", () => {
             var innerObject = { value: 1 };
             var value = keyDependency.getValue({ innerObject: innerObject });
 
-            assert.equal(value, innerObject, "value should be equal to innerObject");
+            assert.equal(value, innerObject, "value is not equal to innerObject");
         });
     });
 
@@ -60,6 +70,16 @@ describe("DirectKeyDependency", () => {
                 .throw("parameter owner can not be null");
         });
 
+        it("should not set the value if the property is null or undefined", () => {
+            var keyDependency = new DirectKeyDependency("innerObject", "gibberish");
+            var innerObject = { value: 2 };
+            var theObject: any = { id: 1 };
+
+            keyDependency.setValue(theObject, innerObject);
+
+            assert.isUndefined(theObject.innerObject, "theObject.innerObject is not undefined");
+        });
+
         it("should set the value for already existing property", () => {
             var keyDependency = new DirectKeyDependency("innerObject", "gibberish");
             var innerObject = { value: 2 };
@@ -67,17 +87,7 @@ describe("DirectKeyDependency", () => {
 
             keyDependency.setValue(theObject, innerObject);
 
-            assert.equal(theObject.innerObject, innerObject, "theObject.innerObject should be equal innerObject");
-        });
-
-        it("should not set the value if the property is null or does not exist", () => {
-            var keyDependency = new DirectKeyDependency("innerObject", "gibberish");
-            var innerObject = { value: 2 };
-            var theObject: any = { id: 1 };
-
-            keyDependency.setValue(theObject, innerObject);
-
-            assert.isUndefined(theObject.innerObject, "theObject.innerObject should be undefined");
+            assert.equal(theObject.innerObject, innerObject, "theObject.innerObject is not equal to innerObject");
         });
     });
 });

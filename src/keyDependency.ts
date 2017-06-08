@@ -1,7 +1,7 @@
 import { notNull, greaterThanZero } from "./check";
 
 export abstract class KeyDependency {
-    abstract dependedKey: string;
+    abstract dependentKey: string;
 
     abstract getValue(owner: Object): Object | null;
     abstract setValue(owner: Object, value: any): void;
@@ -12,12 +12,16 @@ export class ChainedIndexedKeyDependency extends KeyDependency {
     private _keyDependency: KeyDependency;
     private _index: number;
 
-    get dependedKey(): string {
-        return this._keyDependency.dependedKey;
+    get dependentKey(): string {
+        return this._keyDependency.dependentKey;
     }
 
     constructor(propertyName: string, keyDependency: KeyDependency, index: number) {
         super();
+
+        notNull(propertyName, "propertyName");
+        notNull(keyDependency, "keyDependency");
+        greaterThanZero(index, "index");
 
         this._propertyName = propertyName;
         this._keyDependency = keyDependency;
@@ -25,6 +29,8 @@ export class ChainedIndexedKeyDependency extends KeyDependency {
     }
 
     getValue(owner: Object): Object | null {
+        notNull(owner, "owner");
+
         var array = this.getArray(owner);
 
         if (array !== null && array.length > this._index) {
@@ -35,6 +41,8 @@ export class ChainedIndexedKeyDependency extends KeyDependency {
     }
 
     setValue(owner: Object, value: any): void {
+        notNull(owner, "owner");
+
         var array = this.getArray(owner);
 
         if (array !== null && array.length > this._index) {
@@ -46,7 +54,9 @@ export class ChainedIndexedKeyDependency extends KeyDependency {
         var parentOwner = this._keyDependency.getValue(owner);
 
         if (parentOwner !== null) {
-            return parentOwner[this._propertyName];
+            if (parentOwner.hasOwnProperty(this._propertyName)) {
+                return parentOwner[this._propertyName];
+            }
         }
 
         return null;
@@ -58,7 +68,7 @@ export class DirectIndexedKeyDependency extends KeyDependency {
     private _dependentKey: string;
     private _index: number;
 
-    get dependedKey(): string {
+    get dependentKey(): string {
         return this._dependentKey;
     }
 
@@ -92,7 +102,10 @@ export class DirectIndexedKeyDependency extends KeyDependency {
         var array = owner[this._propertyName] as Array<any>;
 
         if (array !== undefined && array.length > this._index) {
-            array[this._index] = value;
+            var element = array[this._index];
+            if (element !== undefined && element !== null) {
+                array[this._index] = value;
+            }
         }
     }
 
@@ -102,8 +115,8 @@ export class ChainedKeyDependency extends KeyDependency {
     private _propertyName: string;
     private _keyDependency: KeyDependency;
 
-    get dependedKey(): string {
-        return this._keyDependency.dependedKey;
+    get dependentKey(): string {
+        return this._keyDependency.dependentKey;
     }
 
     constructor(propertyName: string, keyDependency: KeyDependency) {
@@ -130,9 +143,12 @@ export class ChainedKeyDependency extends KeyDependency {
     }
 
     setValue(owner: Object, value: any): void {
+        notNull(owner, "owner");
+
+        var currentValue = this.getValue(owner);
         var parentOwner = this._keyDependency.getValue(owner);
 
-        if (parentOwner !== null) {
+        if (currentValue !== null && parentOwner !== null) {
             parentOwner[this._propertyName] = value;
         }
     }
@@ -142,7 +158,7 @@ export class DirectKeyDependency extends KeyDependency {
     private _propertyName: string;
     private _dependentKey: string;
 
-    get dependedKey(): string {
+    get dependentKey(): string {
         return this._dependentKey;
     }
 
