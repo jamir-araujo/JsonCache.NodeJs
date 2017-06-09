@@ -35,8 +35,8 @@ describe("DirectKeyDependency", () => {
         it("should throw exception if owner is null", () => {
             var keyDependency = new DirectKeyDependency("innerObject", "gibberish");
 
-            var theObject: any = null;
-            expect(() => keyDependency.getValue(theObject))
+            var owner: any = null;
+            expect(() => keyDependency.getValue(owner))
                 .to
                 .throw("parameter owner can not be null");
         });
@@ -53,7 +53,8 @@ describe("DirectKeyDependency", () => {
             var keyDependency = new DirectKeyDependency("innerObject", "gibberish");
 
             var innerObject = { value: 1 };
-            var value = keyDependency.getValue({ innerObject: innerObject });
+            var owner = { innerObject: innerObject };
+            var value = keyDependency.getValue(owner);
 
             assert.equal(value, innerObject, "value is not equal to innerObject");
         });
@@ -64,30 +65,32 @@ describe("DirectKeyDependency", () => {
         it("should throw exception if owner is null", () => {
             var keyDependency = new DirectKeyDependency("innerObject", "gibberish");
 
-            var theObject: any = null;
-            expect(() => keyDependency.setValue(theObject, null))
+            var nullValue: any = null;
+            expect(() => keyDependency.setValue(nullValue, null))
                 .to
                 .throw("parameter owner can not be null");
         });
 
         it("should not set the value if the property is null or undefined", () => {
-            var keyDependency = new DirectKeyDependency("innerObject", "gibberish");
             var innerObject = { value: 2 };
-            var theObject: any = { id: 1 };
+            var owner: any = { id: 1 };
+            
+            var keyDependency = new DirectKeyDependency("innerObject", "gibberish");
 
-            keyDependency.setValue(theObject, innerObject);
+            keyDependency.setValue(owner, innerObject);
 
-            assert.isUndefined(theObject.innerObject, "theObject.innerObject is not undefined");
+            assert.isUndefined(owner.innerObject, "theObject.innerObject is not undefined");
         });
 
         it("should set the value for already existing property", () => {
+            var owner = { id: 1, innerObject: { id: 1 } };
+            
             var keyDependency = new DirectKeyDependency("innerObject", "gibberish");
             var innerObject = { value: 2 };
-            var theObject = { id: 1, innerObject: { id: 1 } };
 
-            keyDependency.setValue(theObject, innerObject);
+            keyDependency.setValue(owner, innerObject);
 
-            assert.equal(theObject.innerObject, innerObject, "theObject.innerObject is not equal to innerObject");
+            assert.equal(owner.innerObject, innerObject, "theObject.innerObject is not equal to innerObject");
         });
     });
 });

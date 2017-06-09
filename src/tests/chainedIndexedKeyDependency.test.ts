@@ -72,9 +72,9 @@ describe("ChainedIndexedKeyDependency", () => {
 
         it("should return null if the property is null or undefined", () => {
             var owner1 = { childObject: {} };
-            var owner2 = { childObject: { innerObject: null } };
+            var owner2 = { childObject: { innerArray: null } };
 
-            var keyDependency = new ChainedIndexedKeyDependency("innerObject", keyDependencyMock.object, 0);
+            var keyDependency = new ChainedIndexedKeyDependency("innerArray", keyDependencyMock.object, 0);
 
             keyDependencyMock
                 .setup(kd => kd.getValue(It.isAny()))
@@ -133,23 +133,23 @@ describe("ChainedIndexedKeyDependency", () => {
         });
 
         it("should do nothing if _keyDependency.getValue(owner) returns null", () => {
-            var innerObject = { id: 1 };
-            var owner = { childObject: { innerObject: innerObject } };
+            var innerArray = [] as any;
+            var owner = { childObject: { innerArray: innerArray } };
 
             keyDependencyMock
                 .setup(kd => kd.getValue(It.isAny()))
                 .returns(() => null);
 
-            var keyDependency = new ChainedIndexedKeyDependency("innerObject", keyDependencyMock.object, 0);
+            var keyDependency = new ChainedIndexedKeyDependency("innerArray", keyDependencyMock.object, 0);
 
             keyDependency.setValue(owner, {});
 
-            assert.equal(owner.childObject.innerObject, innerObject, "owner.childObject.innerObject is not equal to innerObject");
+            assert.equal(owner.childObject.innerArray, innerArray, "owner.childObject.innerObject is not equal to innerObject");
         });
 
         it("should do nothing if the current value of the property is null of undefined", () => {
             var owner1 = { childObject: {} as any };
-            var owner2 = { childObject: { innerObject: null } };
+            var owner2 = { childObject: { innerArray: null } };
 
             var keyDependency = new ChainedIndexedKeyDependency("innerArray", keyDependencyMock.object, 0);
             var innerObject = { id: 1 };
@@ -166,11 +166,11 @@ describe("ChainedIndexedKeyDependency", () => {
 
             keyDependency.setValue(owner2, innerObject);
 
-            assert.isUndefined(owner1.childObject.innerObject, "owner1.childObject.innerObject is not undefined");
-            assert.isNull(owner2.childObject.innerObject, "owner2.childObject.innerObject is not null");
+            assert.isUndefined(owner1.childObject.innerArray, "owner1.childObject.innerArray is not undefined");
+            assert.isNull(owner2.childObject.innerArray, "owner2.childObject.innerArray is not null");
         });
 
-        it("should do nothing if the index is graeter than the array", () => {
+        it("should do nothing if the index is greater than the array", () => {
             var owner = { childObject: { innerArray: [] } };
 
             var keyDependency = new ChainedIndexedKeyDependency("innerArray", keyDependencyMock.object, 0);
@@ -179,6 +179,48 @@ describe("ChainedIndexedKeyDependency", () => {
             keyDependencyMock
                 .setup(kd => kd.getValue(It.isAny()))
                 .returns(() => owner.childObject);
+
+            keyDependency.setValue(owner, innerObject);
+
+            assert.equal(owner.childObject.innerArray.length, 0, "owner.childObject.innerArray.length is not 0");
+        });
+
+        it("should do nothing if the the value at the index is null or undefined", () => {
+            var owner1 = { childObject: { innerArray: [null] } };
+            var owner2 = { childObject: { innerArray: [undefined] } };
+
+            var keyDependency = new ChainedIndexedKeyDependency("innerArray", keyDependencyMock.object, 0);
+            var innerObject = { id: 1 };
+
+            keyDependencyMock
+                .setup(kd => kd.getValue(It.isAny()))
+                .returns(() => owner1.childObject);
+
+            keyDependency.setValue(owner1, innerObject);
+
+            keyDependencyMock
+                .setup(kd => kd.getValue(It.isAny()))
+                .returns(() => owner2.childObject);
+
+            keyDependency.setValue(owner2, innerObject);
+
+            assert.isNull(owner1.childObject.innerArray[0], "owner1.childObject.innerArray[0] is not null");
+            assert.isUndefined(owner2.childObject.innerArray[0], "owner1.childObject.innerArray[0] is not undefined");
+        });
+
+        it("should update the value for the correct index", () => {
+            var owner = { childObject: { innerArray: [{}] } };
+
+            var keyDependency = new ChainedIndexedKeyDependency("innerArray", keyDependencyMock.object, 0)
+
+             keyDependencyMock
+                .setup(kd => kd.getValue(It.isAny()))
+                .returns(() => owner.childObject);
+
+            var newValue = { id: 1 };
+            keyDependency.setValue(owner, newValue);
+
+            assert.equal(owner.childObject.innerArray[0], newValue, "owner.innerArray[0] is not equal newValue")
         });
     });
 });

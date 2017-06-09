@@ -83,17 +83,19 @@ export default class ObjectInspector {
         for (var index = 0; index < array.length; index++) {
             var element = array[index];
 
-            if (keyDependency === null) {
-                if (dependentKey !== null) {
-                    keyDependency = new DirectIndexedKeyDependency(propertyName, dependentKey, index);
+            var keyDependencyForIndex = keyDependency;
+
+            if (keyDependencyForIndex === null) {
+                if (keyDependencyForIndex !== null) {
+                    keyDependencyForIndex = new DirectIndexedKeyDependency(propertyName, keyDependencyForIndex, index);
                 } else {
                     throw "needed to create IndexedKeyDependency but dependentKey was null";
                 }
             } else {
-                keyDependency = new ChainedIndexedKeyDependency(propertyName, keyDependency, index);
+                keyDependencyForIndex = new ChainedIndexedKeyDependency(propertyName, keyDependencyForIndex, index);
             }
 
-            this.inspectObjectInternal(element, cacheItemFounded, workingItems, keyDependency);
+            this.inspectObjectInternal(element, cacheItemFounded, workingItems, keyDependencyForIndex);
         }
     }
 }

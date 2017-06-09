@@ -46,7 +46,10 @@ export class ChainedIndexedKeyDependency extends KeyDependency {
         var array = this.getArray(owner);
 
         if (array !== null && array.length > this._index) {
-            array[this._index] = value;
+            var element = array[this._index];
+            if (element !== undefined && element !== null) {
+                array[this._index] = value;
+            }
         }
     }
 

@@ -47,8 +47,8 @@ describe("ChainedKeyDependency", () => {
         it("should throw exception if owner is null", () => {
             var keyDependency = new ChainedKeyDependency("innerObject", keyDependencyMock.object);
 
-            var theObject: any = null;
-            expect(() => keyDependency.getValue(theObject))
+            var nullValue: any = null;
+            expect(() => keyDependency.getValue(nullValue))
                 .to
                 .throw("parameter owner can not be null");
         });
@@ -66,33 +66,31 @@ describe("ChainedKeyDependency", () => {
         });
 
         it("should return null if property do not exist", () => {
-
-            var getValueResult = { internalObject: {} };
-            getValueResult.internalObject = { theObject: {} };
+            var owner = { childObject: { innerObject: {} } };
 
             keyDependencyMock
                 .setup(kd => kd.getValue(It.isAny()))
-                .returns(() => getValueResult.internalObject);
+                .returns(() => owner.childObject);
 
-            var keyDependency = new ChainedKeyDependency("innerObject", keyDependencyMock.object);
+            var keyDependency = new ChainedKeyDependency("non_existing_property", keyDependencyMock.object);
 
-            var value = keyDependency.getValue(getValueResult);
+            var value = keyDependency.getValue(owner);
 
             assert.isNull(value, "value is not null");
         });
 
         it("should return the correct value when the property exist", () => {
-            var rootObject = { childObject: { innerObject: {} } };
+            var owner = { childObject: { innerObject: {} } };
 
             keyDependencyMock
                 .setup(kd => kd.getValue(It.isAny()))
-                .returns(() => rootObject.childObject);
+                .returns(() => owner.childObject);
 
             var keyDependency = new ChainedKeyDependency("innerObject", keyDependencyMock.object);
 
-            var value = keyDependency.getValue(rootObject);
+            var value = keyDependency.getValue(owner);
 
-            assert.equal(value, rootObject.childObject.innerObject, "value is not null");
+            assert.equal(value, owner.childObject.innerObject, "value is not null");
         });
     });
 
