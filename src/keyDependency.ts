@@ -111,7 +111,6 @@ export class DirectIndexedKeyDependency extends KeyDependency {
             }
         }
     }
-
 }
 
 export class ChainedKeyDependency extends KeyDependency {

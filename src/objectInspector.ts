@@ -62,8 +62,6 @@ export default class ObjectInspector {
         if (keyDependency === null) {
             if (dependentKey !== null) {
                 keyDependency = new DirectKeyDependency(propertyName, dependentKey);
-            } else {
-                throw "needed to create DirectKeyDependency but dependentKey was null";
             }
         } else {
             keyDependency = new ChainedKeyDependency(propertyName, keyDependency);
@@ -86,10 +84,8 @@ export default class ObjectInspector {
             var keyDependencyForIndex = keyDependency;
 
             if (keyDependencyForIndex === null) {
-                if (keyDependencyForIndex !== null) {
-                    keyDependencyForIndex = new DirectIndexedKeyDependency(propertyName, keyDependencyForIndex, index);
-                } else {
-                    throw "needed to create IndexedKeyDependency but dependentKey was null";
+                if (dependentKey !== null) {
+                    keyDependencyForIndex = new DirectIndexedKeyDependency(propertyName, dependentKey, index);
                 }
             } else {
                 keyDependencyForIndex = new ChainedIndexedKeyDependency(propertyName, keyDependencyForIndex, index);
