@@ -100,5 +100,35 @@ describe("ObjectInspector", () => {
             assert.equal(objects[0], complexObject, "objects[0] is not equal to complexObject");
             assert.equal(objects[1], complexObject.nestedArray[0], "objects[1] is not equal to complexObject.nestedArray[0]");
         });
+
+        it("should navigate deep into the property before jump to the next", () => {
+            var complexObject = addRandomTypeToObject({
+                id: 1,
+                childObject: {
+                    innerObject: addRandomTypeToObject({ id: 2 }),
+                    innerObject1: addRandomTypeToObject({ id: 3 })
+                },
+                childObject1: {
+                    innerObject2: addRandomTypeToObject({ id: 4 }),
+                    innerObject3: addRandomTypeToObject({ id: 5 })
+                }
+            });
+
+            var objects: Object[] = [];
+
+            objectInspector.inspectObject(complexObject, (value, keyDependency) => {
+                objects.push(value);
+
+                return tryGetKey(value);
+            });
+
+            assert.equal(objects[0], complexObject, "objects[0] is not equal to complexObject");
+            assert.equal(objects[1], complexObject.childObject, "objects[1] is not equal to complexObject.childObject");
+            assert.equal(objects[2], complexObject.childObject.innerObject, "objects[2] is not equal to complexObject.childObject.innerObject");
+            assert.equal(objects[3], complexObject.childObject.innerObject1, "objects[3] is not equal to complexObject.childObject.innerObject1");
+            assert.equal(objects[4], complexObject.childObject1, "objects[4] is not equal to complexObject.childObject1");
+            assert.equal(objects[5], complexObject.childObject1.innerObject2, "objects[5] is not equal to complexObject.childObject1.innerObject2");
+            assert.equal(objects[6], complexObject.childObject1.innerObject3, "objects[6] is not equal to complexObject.childObject1.innerObject3");
+        });
     });
 });
