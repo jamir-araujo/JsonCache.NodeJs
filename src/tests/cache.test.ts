@@ -1,25 +1,36 @@
-import * as NodeCache from "node-cache";
 import { assert, expect } from "chai";
+import { IMock, Mock, It, Times } from "typemoq";
+import * as NodeCache from "node-cache";
 import { tryGetKey, addRandomTypeToObject } from "./testHelpers";
+import Convention from "../convention";
 import Cache from "../cache";
 
 
 describe("Cache", () => {
-    var nodeCache: NodeCache;
     var cache: Cache;
+    var nodeCacheMock: IMock<NodeCache>;
+    var conventionMock: IMock<Convention>;
 
     beforeEach(() => {
-        nodeCache = new NodeCache();
-        cache = new Cache(nodeCache);
+        nodeCacheMock = Mock.ofType<NodeCache>();
+        conventionMock = Mock.ofType<Convention>();
+        cache = new Cache(nodeCacheMock.object, conventionMock.object);
     });
 
     describe("constructor(NodeCache)", () => {
 
         it("it should throw exception when _cache is null", () => {
             var nullValue: any = null;
-            expect(() => new Cache(nullValue))
+            expect(() => new Cache(nullValue, conventionMock.object))
                 .to
                 .throw("parameter _cache can not be null");
+        });
+
+        it("it should throw exception when _convention is null", () => {
+            var nullValue: any = null;
+            expect(() => new Cache(nodeCacheMock.object, nullValue))
+                .to
+                .throw("parameter _convention can not be null");
         });
     });
 
@@ -41,16 +52,22 @@ describe("Cache", () => {
 
         it("should add item to the _cache", () => {
             var complexObject = addRandomTypeToObject({ id: 1 });
-            var key = tryGetKey(complexObject);
+            var key = tryGetKey(complexObject) as string;
+            var time = 100;
 
-            cache.add(complexObject, 100);
+            var expectedInvocation = (nodeCache: NodeCache) => nodeCache.set(key, complexObject, time);
 
-            if (key != null) {
-                var cacheObject = nodeCache.get(key);
+            nodeCacheMock
+                .setup(expectedInvocation)
+                .returns(() => true);
 
-                assert.isNotNull(cacheObject, "cacheObject is null");
-                assert.equal(cacheObject, complexObject, "cacheObject is not equal to complexObject");
-            }
+            conventionMock
+                .setup(convention => convention.createKey(complexObject))
+                .returns(() => key);
+
+            cache.add(complexObject, time);
+
+            nodeCacheMock.verify(expectedInvocation, Times.once());
         });
     });
 });

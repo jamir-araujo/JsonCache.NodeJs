@@ -17,6 +17,13 @@ describe("Convention", () => {
                 .to
                 .throw("parameter _properties can not be null");
         });
+
+        it("should throw exception when array is empty", () => {
+            var emptyArray: string[] = [];
+            expect(() => new Convention(emptyArray))
+                .to
+                .throw("parameter _properties must be an array with at lest one item");
+        });
     });
 
     describe("fitsConvention(Object): boolean", () => {

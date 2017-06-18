@@ -1,8 +1,9 @@
-import { notNull } from "./check";
+import { notNull, notEmpty } from "./check";
 
 export default class Convention {
     constructor(private _properties: string[]) {
         notNull(this._properties, "_properties");
+        notEmpty(this._properties, "_properties");
     }
 
     fitsConvention(value: Object): boolean {
