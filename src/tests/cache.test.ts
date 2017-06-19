@@ -50,24 +50,45 @@ describe("Cache", () => {
                 .throw("parameter time should be greater than zero");
         });
 
-        it("should add item to the _cache", () => {
+        it("should call set on _cache", () => {
             var complexObject = addRandomTypeToObject({ id: 1 });
             var key = tryGetKey(complexObject) as string;
             var time = 100;
 
-            var expectedInvocation = (nodeCache: NodeCache) => nodeCache.set(key, complexObject, time);
-
-            nodeCacheMock
-                .setup(expectedInvocation)
+            conventionMock
+                .setup(convention => convention.fitsConvention(complexObject))
                 .returns(() => true);
 
             conventionMock
                 .setup(convention => convention.createKey(complexObject))
                 .returns(() => key);
 
+            nodeCacheMock
+                .setup(nodeCache => nodeCache.set(key, complexObject, time))
+                .verifiable(Times.once());
+
             cache.add(complexObject, time);
 
-            nodeCacheMock.verify(expectedInvocation, Times.once());
+            nodeCacheMock.verifyAll();
+        });
+
+        it("should not call set on _cache if object do not fits convention", () => {
+            var nonConventionObject = { id: 1 };
+            var time = 100;
+
+            conventionMock
+                .setup(convention => convention.fitsConvention(nonConventionObject))
+                .returns(() => false)
+                .verifiable(Times.once());
+
+            nodeCacheMock
+                .setup(nodeCache => nodeCache.set(It.isAny(), It.isAny(), It.isAny()))
+                .verifiable(Times.never());
+
+            cache.add(nonConventionObject, time);
+
+            conventionMock.verifyAll();
+            nodeCacheMock.verifyAll();
         });
     });
 });

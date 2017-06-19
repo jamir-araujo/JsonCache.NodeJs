@@ -13,7 +13,9 @@ export default class Cache {
         notNull(value, "value");
         greaterThanZero(time, "time");
 
-        var key = this._convention.createKey(value);
-        this._cache.set(key, value, time);
+        if (this._convention.fitsConvention(value)) {
+            var key = this._convention.createKey(value);
+            this._cache.set(key, value, time);
+        }
     }
 }
