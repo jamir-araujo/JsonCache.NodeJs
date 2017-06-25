@@ -1,36 +1,46 @@
 import { assert, expect } from "chai";
-import { IMock, Mock, It, Times } from "typemoq";
+import { IMock, Mock, It, Times, MockBehavior } from "typemoq";
 import * as NodeCache from "node-cache";
 import { tryGetKey, addRandomTypeToObject } from "./testHelpers";
 import Convention from "../convention";
 import Cache from "../cache";
-
+import ObjectInspector from "../objectInspector";
+import { KeyDependency } from "../keyDependency";
 
 describe("Cache", () => {
     var cache: Cache;
     var nodeCacheMock: IMock<NodeCache>;
     var conventionMock: IMock<Convention>;
+    var objectInspector: ObjectInspector;
 
     beforeEach(() => {
-        nodeCacheMock = Mock.ofType<NodeCache>();
-        conventionMock = Mock.ofType<Convention>();
-        cache = new Cache(nodeCacheMock.object, conventionMock.object);
+        nodeCacheMock = Mock.ofType<NodeCache>(NodeCache, MockBehavior.Strict);
+        conventionMock = Mock.ofType<Convention>(Convention, MockBehavior.Strict, ["", ""]);
+        objectInspector = new ObjectInspector();
+        cache = new Cache(nodeCacheMock.object, conventionMock.object, objectInspector);
     });
 
     describe("constructor(NodeCache)", () => {
 
         it("it should throw exception when _cache is null", () => {
             var nullValue: any = null;
-            expect(() => new Cache(nullValue, conventionMock.object))
+            expect(() => new Cache(nullValue, conventionMock.object, objectInspector))
                 .to
                 .throw("parameter _cache can not be null");
         });
 
         it("it should throw exception when _convention is null", () => {
             var nullValue: any = null;
-            expect(() => new Cache(nodeCacheMock.object, nullValue))
+            expect(() => new Cache(nodeCacheMock.object, nullValue, objectInspector))
                 .to
                 .throw("parameter _convention can not be null");
+        });
+
+        it("it should throw exception when _objectInspector is null", () => {
+            var nullValue: any = null;
+            expect(() => new Cache(nodeCacheMock.object, conventionMock.object, nullValue))
+                .to
+                .throw("parameter _objectInspector can not be null");
         });
     });
 
@@ -50,42 +60,66 @@ describe("Cache", () => {
                 .throw("parameter time should be greater than zero");
         });
 
-        it("should call set on _cache", () => {
-            var complexObject = addRandomTypeToObject({ id: 1 });
-            var key = tryGetKey(complexObject) as string;
-            var time = 100;
+        it("should not call _cache.set when _convetion.fitsConvention returns false", () => {
+            var object = {};
 
             conventionMock
-                .setup(convention => convention.fitsConvention(complexObject))
-                .returns(() => true);
-
-            conventionMock
-                .setup(convention => convention.createKey(complexObject))
-                .returns(() => key);
-
-            nodeCacheMock
-                .setup(nodeCache => nodeCache.set(key, complexObject, time))
-                .verifiable(Times.once());
-
-            cache.add(complexObject, time);
-
-            nodeCacheMock.verifyAll();
-        });
-
-        it("should not call set on _cache if object do not fits convention", () => {
-            var nonConventionObject = { id: 1 };
-            var time = 100;
-
-            conventionMock
-                .setup(convention => convention.fitsConvention(nonConventionObject))
+                .setup(convention => convention.fitsConvention(object))
                 .returns(() => false)
                 .verifiable(Times.once());
 
-            nodeCacheMock
-                .setup(nodeCache => nodeCache.set(It.isAny(), It.isAny(), It.isAny()))
-                .verifiable(Times.never());
+            cache.add(object, 100);
 
-            cache.add(nonConventionObject, time);
+            nodeCacheMock
+                .verify(nodeCache => nodeCache.set(It.isAny(), It.isAny(), It.isAny()), Times.never());
+        });
+
+        it("should call _cache.set when _convetion.fitsConvention returns true", () => {
+            var object = addRandomTypeToObject({ id: 1 });
+
+            var key = "teste key";
+
+            conventionMock
+                .setup(convention => convention.fitsConvention(object))
+                .returns(() => true)
+                .verifiable(Times.once());
+
+            conventionMock
+                .setup(convention => convention.createKey(object))
+                .returns(() => key)
+                .verifiable(Times.once());
+
+            nodeCacheMock
+                .setup(nodeCache => nodeCache.set(key, object, 100))
+                .returns(() => true)
+                .verifiable(Times.once());
+
+            cache.add(object, 100);
+
+            conventionMock.verifyAll();
+        });
+
+        it("should call _cache.set for original object and neste object when _convention.fitsConvention returns true for both", () => {
+            var object = addRandomTypeToObject({ id: 1, nested: addRandomTypeToObject({ id: 2 }) });
+
+            var objectKey = `key for teste -> ${object.id}`;
+            var nestedKey = `key for teste -> ${object.nested.id}`;
+            var dependencyKey = `${nestedKey} -> Dependencies`;
+            var time = 100;
+
+            conventionMock.setup(c => c.fitsConvention(object)).returns(() => true).verifiable(Times.once());
+            conventionMock.setup(c => c.fitsConvention(object.nested)).returns(() => true).verifiable(Times.once());
+
+            conventionMock.setup(c => c.createKey(object)).returns(() => objectKey).verifiable(Times.once());
+            conventionMock.setup(c => c.createKey(object.nested)).returns(() => nestedKey).verifiable(Times.once());
+
+            nodeCacheMock.setup(nc => nc.set(objectKey, object, time)).returns(() => true).verifiable(Times.once());
+            nodeCacheMock.setup(nc => nc.set(nestedKey, object.nested, time)).returns(() => true).verifiable(Times.once());
+
+            nodeCacheMock.setup(nc => nc.get<nullable<KeyDependency>>(It.isAny())).returns(() => null).verifiable(Times.once());
+            nodeCacheMock.setup(nc => nc.set(dependencyKey, It.isAny(), time)).returns(() => true).verifiable(Times.once());
+
+            cache.add(object, time);
 
             conventionMock.verifyAll();
             nodeCacheMock.verifyAll();

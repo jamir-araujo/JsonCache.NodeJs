@@ -13,12 +13,14 @@ export function tryGetKey(value: Object): string | null {
     return null;
 }
 
-export function addRandomTypeToObject(value: any): Object {
+export function addRandomTypeToObject<T extends Object>(value: T): T {
     return addTypeToObject(value, UUID.v4());
 }
 
-export function addTypeToObject(value: any, type: string): Object {
-    value.$$type = type;
+export function addTypeToObject<T>(value: T, type: string): T {
+    var valueAsAny = value as any;
+
+    valueAsAny.$$type = type;
 
     return value;
 }
