@@ -19,10 +19,10 @@ export default class Cache {
         notNull(value, "value");
         greaterThanZero(time, "time");
 
-        this._objectInspector.inspectObject(value, (valeu, keyDependency) => {
-            if (this._convention.fitsConvention(valeu)) {
-                var key = this._convention.createKey(valeu);
-                this._cache.set(key, valeu, time);
+        this._objectInspector.inspectObject(value, (foundedObject, keyDependency) => {
+            if (this._convention.fitsConvention(foundedObject)) {
+                var key = this._convention.createKey(foundedObject);
+                this._cache.set(key, foundedObject, time);
 
                 if (keyDependency != null) {
                     this.storeKeyDependency(key, keyDependency, time);
