@@ -5,6 +5,7 @@ import { addRandomTypeToObject, addTypeToObject, tryGetKey } from "./testHelpers
 
 describe("ObjectInspector", () => {
     let objectInspector: ObjectInspector;
+    let emptyKeyDepencyFound = (value: Object, keyDependency: KeyDependency) => void {};
 
     beforeEach(() => {
         objectInspector = new ObjectInspector();
@@ -14,27 +15,34 @@ describe("ObjectInspector", () => {
 
         it("should throw when value is null", () => {
             var anyValue: any = null;
-            expect(() => objectInspector.inspectObject(anyValue, (a, b) => { return null }))
+            expect(() => objectInspector.inspectObject(anyValue, value => { return null }, emptyKeyDepencyFound))
                 .to
                 .throw("parameter value can not be null", "did not thrown an exception");
         });
 
         it("should throw when cacheItemFounded is null", () => {
             var nullAction: any = null;
-            expect(() => objectInspector.inspectObject({}, nullAction))
+            expect(() => objectInspector.inspectObject({}, nullAction, emptyKeyDepencyFound))
                 .to
                 .throw("parameter cacheItemFounded can not be null", "did not thrown an exception")
+        });
+
+        it("should throw when keyDependencyFound is null", () => {
+            var nullAction: any = null;
+            expect(() => objectInspector.inspectObject({}, (value) => { return null; }, nullAction))
+                .to
+                .throw("parameter KeyDependencyFound can not be null", "did not thrown an exception")
         });
 
         it("should call cacheItemFounded only once for shallow objects", () => {
             var shallowObject = addRandomTypeToObject({ id: 1 });
             var callCount = 0;
 
-            objectInspector.inspectObject(shallowObject, (value, keyDependency) => {
+            objectInspector.inspectObject(shallowObject, value => {
                 callCount += 1;
 
                 return tryGetKey(value);
-            });
+            }, emptyKeyDepencyFound);
 
             assert.equal(1, callCount, "callCount is not 1");
         });
@@ -43,11 +51,11 @@ describe("ObjectInspector", () => {
             var complexObject = addRandomTypeToObject({ id: 1, nested: addRandomTypeToObject({ id: 2 }) });
             var objects: any[] = [];
 
-            objectInspector.inspectObject(complexObject, (value, keyDependency) => {
+            objectInspector.inspectObject(complexObject, value => {
                 objects.push(value);
 
                 return tryGetKey(value);
-            });
+            }, emptyKeyDepencyFound);
 
             assert.equal(objects.length, 2, "callCount is not 2");
             assert.equal(objects[0], complexObject, "objects[0] is not equal to complexObject");
@@ -58,11 +66,11 @@ describe("ObjectInspector", () => {
             var complexObject = addRandomTypeToObject({ id: 1, nested: null });
             var objects: any[] = [];
 
-            objectInspector.inspectObject(complexObject, (value, keyDependency) => {
+            objectInspector.inspectObject(complexObject, value => {
                 objects.push(value);
 
                 return tryGetKey(value);
-            });
+            }, emptyKeyDepencyFound);
 
             assert.equal(objects.length, 1, "callCount is not 1");
             assert.equal(objects[0], complexObject, "objects[0] is not equal to complexObject");
@@ -73,11 +81,11 @@ describe("ObjectInspector", () => {
 
             var objects: any[] = [];
 
-            objectInspector.inspectObject(complexObject, (value, keyDependency) => {
+            objectInspector.inspectObject(complexObject, value => {
                 objects.push(value);
 
                 return tryGetKey(value);
-            });
+            }, emptyKeyDepencyFound);
 
             assert.equal(objects.length, 3, "callCount is not 3");
             assert.equal(objects[0], complexObject, "objects[0] is no equal to complexObject");
@@ -90,11 +98,11 @@ describe("ObjectInspector", () => {
 
             var objects: any[] = [];
 
-            objectInspector.inspectObject(complexObject, (value, keyDependency) => {
+            objectInspector.inspectObject(complexObject, value => {
                 objects.push(value);
 
                 return tryGetKey(value);
-            });
+            }, emptyKeyDepencyFound);
 
             assert.equal(objects.length, 2, "callCount is not 2");
             assert.equal(objects[0], complexObject, "objects[0] is not equal to complexObject");
@@ -116,11 +124,11 @@ describe("ObjectInspector", () => {
 
             var objects: Object[] = [];
 
-            objectInspector.inspectObject(complexObject, (value, keyDependency) => {
+            objectInspector.inspectObject(complexObject, value => {
                 objects.push(value);
 
                 return tryGetKey(value);
-            });
+            }, emptyKeyDepencyFound);
 
             assert.equal(objects[0], complexObject, "objects[0] is not equal to complexObject");
             assert.equal(objects[1], complexObject.childObject, "objects[1] is not equal to complexObject.childObject");

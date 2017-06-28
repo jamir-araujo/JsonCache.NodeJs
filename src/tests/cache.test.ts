@@ -107,11 +107,11 @@ describe("Cache", () => {
             var dependencyKey = `${nestedKey} -> Dependencies`;
             var time = 100;
 
-            conventionMock.setup(c => c.fitsConvention(object)).returns(() => true).verifiable(Times.once());
-            conventionMock.setup(c => c.fitsConvention(object.nested)).returns(() => true).verifiable(Times.once());
+            conventionMock.setup(c => c.fitsConvention(object)).returns(() => true).verifiable(Times.atLeastOnce());
+            conventionMock.setup(c => c.fitsConvention(object.nested)).returns(() => true).verifiable(Times.atLeastOnce());
 
-            conventionMock.setup(c => c.createKey(object)).returns(() => objectKey).verifiable(Times.once());
-            conventionMock.setup(c => c.createKey(object.nested)).returns(() => nestedKey).verifiable(Times.once());
+            conventionMock.setup(c => c.createKey(object)).returns(() => objectKey).verifiable(Times.atLeastOnce());
+            conventionMock.setup(c => c.createKey(object.nested)).returns(() => nestedKey).verifiable(Times.atLeastOnce());
 
             nodeCacheMock.setup(nc => nc.set(objectKey, object, time)).returns(() => true).verifiable(Times.once());
             nodeCacheMock.setup(nc => nc.set(nestedKey, object.nested, time)).returns(() => true).verifiable(Times.once());
