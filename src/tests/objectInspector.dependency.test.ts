@@ -98,5 +98,36 @@ describe("ObjectInspector", () => {
             assert.isNotNull(keyDependencies[0], "keyDependencies[0] is null");
             assert.isNotNull(keyDependencies[1], "keyDependencies[1] is null");
         });
+
+        it("should call keydependecyFound twice and one objectFound when nestes object appear twice on the graph", () => {
+            let objects: Object[] = [];
+            let keyfounds: { value: Object, keyDependency: KeyDependency }[] = []
+            var nested = addRandomTypeToObject({ id: 1 });
+            var complexObject = addRandomTypeToObject({
+                id: 2,
+                child1: addRandomTypeToObject({ id: 3, nested: nested }),
+                child2: addRandomTypeToObject({ id: 4, nested: nested })
+            });
+
+            objectInspector.inspectObject(complexObject, value => {
+                objects.push(value);
+                return tryGetKey(value);
+            }, (value1: object, KeyDependency: KeyDependency) => {
+                keyfounds.push({ value: value1, keyDependency: KeyDependency });
+            })
+
+            assert.equal(objects.length, 4, "objects.length is not equal to 4");
+            assert.equal(keyfounds.length, 4, "keyfounds.length is not equal to 4");
+
+            assert.equal(objects[0], complexObject, "objects[0] is not equal to complexObject");
+            assert.equal(objects[1], complexObject.child1, "objects[1] is not equal to complexObject.child1");
+            assert.equal(objects[2], complexObject.child1.nested, "objects[2] is not equal to  complexObject.child1.nested");
+            assert.equal(objects[3], complexObject.child2, "objects[3] is not equal to complexObject.child2");
+
+            assert.equal(keyfounds[0].value, complexObject.child1.nested, "keyfounds[0].value is not equal to complexObject.child1.nested");
+            assert.equal(keyfounds[1].value, complexObject.child1, "keyfounds[1].value is not equal to complexObject.child1");
+            assert.equal(keyfounds[2].value, complexObject.child2.nested, "keyfounds[2].value is not equal to complexObject.child2.nested");
+            assert.equal(keyfounds[3].value, complexObject.child2, "keyfounds[3].value is not equal to complexObject.child2");
+        });
     });
 });
