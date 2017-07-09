@@ -38,6 +38,22 @@ export default class Cache {
         });
     }
 
+    update(value: Object, time: number): void {
+        notNull(value, "value");
+        greaterThanZero(time, "time");
+
+        this._objectInspector.inspectObject(value, value => {
+            if (this._convention.fitsConvention(value)) {
+                return null;
+            }
+            else {
+                return null;
+            }
+        }, (value, keyDependency) => {
+
+        });
+    }
+
     private storeKeyDependency(key: string, keyDependency: KeyDependency, time: number): void {
         var dependencyKey = this.createKeyForDependencies(key);
 

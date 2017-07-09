@@ -54,7 +54,6 @@ describe("Cache", () => {
         });
 
         it("should throw exception when time less than zero", () => {
-            var nullValue: any = null;
             expect(() => cache.add({}, -1))
                 .to
                 .throw("parameter time should be greater than zero");
@@ -124,5 +123,35 @@ describe("Cache", () => {
             conventionMock.verifyAll();
             nodeCacheMock.verifyAll();
         });
+    });
+
+    describe("update(Object, time)", () => {
+
+        it("it should throw exception when value is null", () => {
+            var nullValue: any = null;
+            expect(() => cache.update(nullValue, 100))
+                .to
+                .throw("parameter value can not be null");
+        });
+
+        it("it should throw exception when time is less than zero", () => {
+            expect(() => cache.update({}, -1))
+                .to
+                .throw("parameter time should be greater than zero");
+        });
+
+        it("should not call _cache.set when _convetion.fitsConvention returns false", () => {
+            var value = {};
+
+            conventionMock
+                .setup(convention => convention.fitsConvention(value))
+                .returns(() => false)
+                .verifiable();
+
+            cache.update(value, 100);
+
+            conventionMock.verifyAll();
+        });
+
     });
 });
