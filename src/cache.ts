@@ -19,28 +19,46 @@ export default class Cache {
         notNull(value, "value");
         greaterThanZero(time, "time");
 
-        this._objectInspector.inspectObject(value, (foundedObject, keyDependency) => {
-            if (this._convention.fitsConvention(foundedObject)) {
-                var key = this._convention.createKey(foundedObject);
-                this._cache.set(key, foundedObject, time);
-
-                if (keyDependency != null) {
-                    this.storeKeyDependency(key, keyDependency, time);
-                }
+        this._objectInspector.inspectObject(value, value => {
+            if (this._convention.fitsConvention(value)) {
+                var key = this._convention.createKey(value);
+                this._cache.set(key, value, time);
 
                 return key;
             }
             else {
                 return null;
             }
-        })
+        }, (value, keyDependency) => {
+            if (this._convention.fitsConvention(value)) {
+                var key = this._convention.createKey(value);
+
+                this.storeKeyDependency(key, keyDependency, time);
+            }
+        });
+    }
+
+    update(value: Object, time: number): void {
+        notNull(value, "value");
+        greaterThanZero(time, "time");
+
+        this._objectInspector.inspectObject(value, value => {
+            if (this._convention.fitsConvention(value)) {
+                return null;
+            }
+            else {
+                return null;
+            }
+        }, (value, keyDependency) => {
+
+        });
     }
 
     private storeKeyDependency(key: string, keyDependency: KeyDependency, time: number): void {
         var dependencyKey = this.createKeyForDependencies(key);
 
         var dependencies = this._cache.get<KeyDependency[]>(dependencyKey);
-        if (dependencies){
+        if (dependencies) {
             this._cache.del(dependencyKey);
 
             var index = dependencies.findIndex(value => value.dependentKey === keyDependency.dependentKey);

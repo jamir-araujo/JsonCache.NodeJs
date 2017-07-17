@@ -1,40 +1,49 @@
 import { notNull } from "./check";
 import { KeyDependency, DirectKeyDependency, ChainedIndexedKeyDependency, ChainedKeyDependency, DirectIndexedKeyDependency } from "./keyDependency";
 
-type CallBack = CacheItemFounded<Object, nullable<KeyDependency>, nullable<string>>;
+type ObjectFound = (value: Object) => nullable<string>;
+type KeyDependencyFound = (value: Object, keyDependency: KeyDependency) => void;
 
 export default class ObjectInspector {
-    inspectObject(value: Object, cacheItemFounded: CallBack): void {
+    inspectObject(value: Object, objectFound: ObjectFound, KeyDependencyFound: KeyDependencyFound): void {
         notNull(value, "value");
-        notNull(cacheItemFounded, "cacheItemFounded");
+        notNull(objectFound, "cacheItemFounded");
+        notNull(KeyDependencyFound, "KeyDependencyFound");
 
-        this.inspectObjectInternal(value, cacheItemFounded, new Set<any>(), null);
+        this.inspectObjectInternal(value, objectFound, KeyDependencyFound, new Set<any>(), null);
     }
 
-    private inspectObjectInternal(value: object, cacheItemFounded: CallBack, workingItems: Set<any>, keyDependency: nullable<KeyDependency>): void {
+    private inspectObjectInternal(
+        value: object,
+        objectFound: ObjectFound,
+        keyDependencyFound: KeyDependencyFound,
+        workingItems: Set<any>,
+        keyDependency: nullable<KeyDependency>): void {
+
         if (value === null || !workingItems.add(value)) {
             return;
         }
 
         if (value instanceof Array) {
             for (let item of value) {
-                this.inspectObjectInternal(item, cacheItemFounded, workingItems, keyDependency);
+                this.inspectObjectInternal(item, objectFound, keyDependencyFound, workingItems, keyDependency);
             }
         } else if (value instanceof Object) {
-            var key = cacheItemFounded(value, keyDependency);
+            var key = objectFound(value);
 
             if (key !== null) {
                 keyDependency = null;
             }
 
-            this.inspectProperties(value, key, cacheItemFounded, workingItems, keyDependency);
+            this.inspectProperties(value, key, objectFound, keyDependencyFound, workingItems, keyDependency);
         }
     }
 
     private inspectProperties(
         value: Object,
-        key: string | null,
-        cacheItemFounded: CallBack,
+        key: nullable<string>,
+        cacheItemFounded: ObjectFound,
+        keyDependencyFound: KeyDependencyFound,
         workingItems: Set<any>,
         keyDependency: nullable<KeyDependency>) {
 
@@ -42,18 +51,19 @@ export default class ObjectInspector {
             if (value.hasOwnProperty(propertyName)) {
                 var propertyValue = value[propertyName];
                 if (propertyValue instanceof Array) {
-                    this.inspectArrayProperty(key, cacheItemFounded, workingItems, keyDependency, propertyName, propertyValue)
+                    this.inspectArrayProperty(key, cacheItemFounded, keyDependencyFound, workingItems, keyDependency, propertyName, propertyValue)
                 }
                 else if (propertyValue instanceof Object) {
-                    this.inspectObjectProperties(key, cacheItemFounded, workingItems, keyDependency, propertyName, propertyValue);
+                    this.inspectObjectProperties(key, cacheItemFounded, keyDependencyFound, workingItems, keyDependency, propertyName, propertyValue);
                 }
             }
         }
     }
 
     private inspectObjectProperties(
-        dependentKey: string | null,
-        cacheItemFounded: CallBack,
+        dependentKey: nullable<string>,
+        cacheItemFounded: ObjectFound,
+        keyDependencyFound: KeyDependencyFound,
         workingItems: Set<any>,
         keyDependency: nullable<KeyDependency>,
         propertyName: string,
@@ -67,12 +77,17 @@ export default class ObjectInspector {
             keyDependency = new ChainedKeyDependency(propertyName, keyDependency);
         }
 
-        this.inspectObjectInternal(propertyValue, cacheItemFounded, workingItems, keyDependency);
+        this.inspectObjectInternal(propertyValue, cacheItemFounded, keyDependencyFound, workingItems, keyDependency);
+
+        if (keyDependency !== null) {
+            keyDependencyFound(propertyValue, keyDependency);
+        }
     }
 
     private inspectArrayProperty(
-        dependentKey: string | null,
-        cacheItemFounded: CallBack,
+        dependentKey: nullable<string>,
+        cacheItemFounded: ObjectFound,
+        keyDependencyFound: KeyDependencyFound,
         workingItems: Set<any>,
         keyDependency: nullable<KeyDependency>,
         propertyName: string,
@@ -91,7 +106,11 @@ export default class ObjectInspector {
                 keyDependencyForIndex = new ChainedIndexedKeyDependency(propertyName, keyDependencyForIndex, index);
             }
 
-            this.inspectObjectInternal(element, cacheItemFounded, workingItems, keyDependencyForIndex);
+            this.inspectObjectInternal(element, cacheItemFounded, keyDependencyFound, workingItems, keyDependencyForIndex);
+
+            if (keyDependencyForIndex !== null) {
+                keyDependencyFound(element, keyDependencyForIndex);
+            }
         }
     }
 }

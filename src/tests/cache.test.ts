@@ -54,7 +54,6 @@ describe("Cache", () => {
         });
 
         it("should throw exception when time less than zero", () => {
-            var nullValue: any = null;
             expect(() => cache.add({}, -1))
                 .to
                 .throw("parameter time should be greater than zero");
@@ -107,11 +106,11 @@ describe("Cache", () => {
             var dependencyKey = `${nestedKey} -> Dependencies`;
             var time = 100;
 
-            conventionMock.setup(c => c.fitsConvention(object)).returns(() => true).verifiable(Times.once());
-            conventionMock.setup(c => c.fitsConvention(object.nested)).returns(() => true).verifiable(Times.once());
+            conventionMock.setup(c => c.fitsConvention(object)).returns(() => true).verifiable(Times.atLeastOnce());
+            conventionMock.setup(c => c.fitsConvention(object.nested)).returns(() => true).verifiable(Times.atLeastOnce());
 
-            conventionMock.setup(c => c.createKey(object)).returns(() => objectKey).verifiable(Times.once());
-            conventionMock.setup(c => c.createKey(object.nested)).returns(() => nestedKey).verifiable(Times.once());
+            conventionMock.setup(c => c.createKey(object)).returns(() => objectKey).verifiable(Times.atLeastOnce());
+            conventionMock.setup(c => c.createKey(object.nested)).returns(() => nestedKey).verifiable(Times.atLeastOnce());
 
             nodeCacheMock.setup(nc => nc.set(objectKey, object, time)).returns(() => true).verifiable(Times.once());
             nodeCacheMock.setup(nc => nc.set(nestedKey, object.nested, time)).returns(() => true).verifiable(Times.once());
@@ -124,5 +123,35 @@ describe("Cache", () => {
             conventionMock.verifyAll();
             nodeCacheMock.verifyAll();
         });
+    });
+
+    describe("update(Object, time)", () => {
+
+        it("it should throw exception when value is null", () => {
+            var nullValue: any = null;
+            expect(() => cache.update(nullValue, 100))
+                .to
+                .throw("parameter value can not be null");
+        });
+
+        it("it should throw exception when time is less than zero", () => {
+            expect(() => cache.update({}, -1))
+                .to
+                .throw("parameter time should be greater than zero");
+        });
+
+        it("should not call _cache.set when _convetion.fitsConvention returns false", () => {
+            var value = {};
+
+            conventionMock
+                .setup(convention => convention.fitsConvention(value))
+                .returns(() => false)
+                .verifiable();
+
+            cache.update(value, 100);
+
+            conventionMock.verifyAll();
+        });
+
     });
 });
