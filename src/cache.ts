@@ -30,7 +30,7 @@ export default class Cache {
                 return null;
             }
         }, (value, keyDependency) => {
-            if (this._convention.fitsConvention(value) && keyDependency != null) {
+            if (this._convention.fitsConvention(value)) {
                 var key = this._convention.createKey(value);
 
                 this.storeKeyDependency(key, keyDependency, time);

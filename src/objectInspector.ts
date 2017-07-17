@@ -2,7 +2,7 @@ import { notNull } from "./check";
 import { KeyDependency, DirectKeyDependency, ChainedIndexedKeyDependency, ChainedKeyDependency, DirectIndexedKeyDependency } from "./keyDependency";
 
 type ObjectFound = (value: Object) => nullable<string>;
-type KeyDependencyFound = (value: Object, keyDependency: nullable<KeyDependency>) => void;
+type KeyDependencyFound = (value: Object, keyDependency: KeyDependency) => void;
 
 export default class ObjectInspector {
     inspectObject(value: Object, objectFound: ObjectFound, KeyDependencyFound: KeyDependencyFound): void {
