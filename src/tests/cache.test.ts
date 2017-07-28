@@ -153,5 +153,30 @@ describe("Cache", () => {
             conventionMock.verifyAll();
         });
 
+        it("should call _cache.set when _convetion.fitsConvention returns true", () => {
+            var value = addRandomTypeToObject({ id: 1 });
+            var key = "my key"
+
+            conventionMock
+                .setup(convention => convention.fitsConvention(value))
+                .returns(() => true)
+                .verifiable();
+
+            conventionMock
+                .setup(convention => convention.createKey(value))
+                .returns(() => key)
+                .verifiable();
+
+            nodeCacheMock
+                .setup(nodeCache => nodeCache.set(key, value, 100))
+                .returns(() => true)
+                .verifiable();
+
+            cache.update(value, 100);
+
+            conventionMock.verifyAll();
+            nodeCacheMock.verifyAll();
+        });
+
     });
 });

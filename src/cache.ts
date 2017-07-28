@@ -44,7 +44,10 @@ export default class Cache {
 
         this._objectInspector.inspectObject(value, value => {
             if (this._convention.fitsConvention(value)) {
-                return null;
+                var key = this._convention.createKey(value);
+                this._cache.set(key, value, time);
+
+                return key;
             }
             else {
                 return null;
