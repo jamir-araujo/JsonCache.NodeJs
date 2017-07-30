@@ -1,10 +1,11 @@
 import { notNull } from "./check";
+import IObjectInspector from "./IObjectInspector";
 import { KeyDependency, DirectKeyDependency, ChainedIndexedKeyDependency, ChainedKeyDependency, DirectIndexedKeyDependency } from "./keyDependency";
 
 type ObjectFound = (value: Object) => nullable<string>;
 type KeyDependencyFound = (value: Object, keyDependency: KeyDependency) => void;
 
-export default class ObjectInspector {
+export default class ObjectInspector implements IObjectInspector {
     inspectObject(value: Object, objectFound: ObjectFound, KeyDependencyFound: KeyDependencyFound): void {
         notNull(value, "value");
         notNull(objectFound, "cacheItemFounded");

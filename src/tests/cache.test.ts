@@ -6,32 +6,33 @@ import Convention from "../convention";
 import Cache from "../cache";
 import ObjectInspector from "../objectInspector";
 import { KeyDependency } from "../keyDependency";
+import { ObjectInspectorMock } from "./objectInspectorMock";
 
 describe("Cache", () => {
     var cache: Cache;
     var nodeCacheMock: IMock<NodeCache>;
     var conventionMock: IMock<Convention>;
-    var objectInspector: ObjectInspector;
+    var objectInspectorMock: ObjectInspectorMock;
 
     beforeEach(() => {
         nodeCacheMock = Mock.ofType<NodeCache>(NodeCache, MockBehavior.Strict);
         conventionMock = Mock.ofType<Convention>(Convention, MockBehavior.Strict, ["", ""]);
-        objectInspector = new ObjectInspector();
-        cache = new Cache(nodeCacheMock.object, conventionMock.object, objectInspector);
+        objectInspectorMock = new ObjectInspectorMock();
+        cache = new Cache(nodeCacheMock.object, conventionMock.object, objectInspectorMock);
     });
 
     describe("constructor(NodeCache)", () => {
 
         it("it should throw exception when _cache is null", () => {
             var nullValue: any = null;
-            expect(() => new Cache(nullValue, conventionMock.object, objectInspector))
+            expect(() => new Cache(nullValue, conventionMock.object, objectInspectorMock))
                 .to
                 .throw("parameter _cache can not be null");
         });
 
         it("it should throw exception when _convention is null", () => {
             var nullValue: any = null;
-            expect(() => new Cache(nodeCacheMock.object, nullValue, objectInspector))
+            expect(() => new Cache(nodeCacheMock.object, nullValue, objectInspectorMock))
                 .to
                 .throw("parameter _convention can not be null");
         });
@@ -62,6 +63,9 @@ describe("Cache", () => {
         it("should not call _cache.set when _convetion.fitsConvention returns false", () => {
             var object = {};
 
+            objectInspectorMock
+                .addObjectFoundCall(objectFound => objectFound(object));
+
             conventionMock
                 .setup(convention => convention.fitsConvention(object))
                 .returns(() => false)
@@ -77,6 +81,9 @@ describe("Cache", () => {
             var object = addRandomTypeToObject({ id: 1 });
 
             var key = "teste key";
+
+            objectInspectorMock
+                .addObjectFoundCall(objectFound => objectFound(object));
 
             conventionMock
                 .setup(convention => convention.fitsConvention(object))
@@ -101,10 +108,17 @@ describe("Cache", () => {
         it("should call _cache.set for original object and neste object when _convention.fitsConvention returns true for both", () => {
             var object = addRandomTypeToObject({ id: 1, nested: addRandomTypeToObject({ id: 2 }) });
 
-            var objectKey = `key for teste -> ${object.id}`;
-            var nestedKey = `key for teste -> ${object.nested.id}`;
+            var objectKey = `key for test -> ${object.id}`;
+            var nestedKey = `key for test -> ${object.nested.id}`;
             var dependencyKey = `${nestedKey} -> Dependencies`;
+            var dependencyKeyMock = Mock.ofType<KeyDependency>();
             var time = 100;
+
+            objectInspectorMock.addObjectFoundCall(objectFound => objectFound(object));
+            objectInspectorMock.addObjectFoundCall(objectFound => objectFound(object.nested));
+
+            objectInspectorMock
+                .addKeyDependencyFoundCalls(dependencyKeyFound => dependencyKeyFound(object.nested, dependencyKeyMock.object))
 
             conventionMock.setup(c => c.fitsConvention(object)).returns(() => true).verifiable(Times.atLeastOnce());
             conventionMock.setup(c => c.fitsConvention(object.nested)).returns(() => true).verifiable(Times.atLeastOnce());
@@ -116,7 +130,7 @@ describe("Cache", () => {
             nodeCacheMock.setup(nc => nc.set(nestedKey, object.nested, time)).returns(() => true).verifiable(Times.once());
 
             nodeCacheMock.setup(nc => nc.get<nullable<KeyDependency>>(It.isAny())).returns(() => null).verifiable(Times.once());
-            nodeCacheMock.setup(nc => nc.set(dependencyKey, It.isAny(), time)).returns(() => true).verifiable(Times.once());
+            nodeCacheMock.setup(nc => nc.set(dependencyKey, [dependencyKeyMock.object], time)).returns(() => true).verifiable(Times.once());
 
             cache.add(object, time);
 
@@ -143,6 +157,9 @@ describe("Cache", () => {
         it("should not call _cache.set when _convetion.fitsConvention returns false", () => {
             var value = {};
 
+            objectInspectorMock
+                .addObjectFoundCall(objectFound => objectFound(value));
+
             conventionMock
                 .setup(convention => convention.fitsConvention(value))
                 .returns(() => false)
@@ -156,6 +173,9 @@ describe("Cache", () => {
         it("should call _cache.set when _convetion.fitsConvention returns true", () => {
             var value = addRandomTypeToObject({ id: 1 });
             var key = "my key"
+
+            objectInspectorMock
+                .addObjectFoundCall(objectFound => objectFound(value));
 
             conventionMock
                 .setup(convention => convention.fitsConvention(value))

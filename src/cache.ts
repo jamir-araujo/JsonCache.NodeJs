@@ -1,5 +1,5 @@
 import * as NodeCache from "node-cache";
-import ObjectInspector from "./objectInspector";
+import IObjectInspector from "./IObjectInspector";
 import Convention from "./convention";
 import { notNull, greaterThanZero } from "./check";
 import { KeyDependency } from "./keyDependency";
@@ -8,7 +8,7 @@ export default class Cache {
     constructor(
         private _cache: NodeCache,
         private _convention: Convention,
-        private _objectInspector: ObjectInspector) {
+        private _objectInspector: IObjectInspector) {
 
         notNull(this._cache, "_cache");
         notNull(this._convention, "_convention");
