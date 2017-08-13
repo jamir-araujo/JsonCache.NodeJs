@@ -105,7 +105,7 @@ describe("Cache", () => {
             conventionMock.verifyAll();
         });
 
-        it("should call _cache.set for original object and neste object when _convention.fitsConvention returns true for both", () => {
+        it("should add a new array of KeyDependency on the cache when object on nested property fits convention", () => {
             var object = addRandomTypeToObject({ id: 1, nested: addRandomTypeToObject({ id: 2 }) });
 
             var objectKey = `key for test -> ${object.id}`;
@@ -129,8 +129,83 @@ describe("Cache", () => {
             nodeCacheMock.setup(nc => nc.set(objectKey, object, time)).returns(() => true).verifiable(Times.once());
             nodeCacheMock.setup(nc => nc.set(nestedKey, object.nested, time)).returns(() => true).verifiable(Times.once());
 
-            nodeCacheMock.setup(nc => nc.get<nullable<KeyDependency>>(It.isAny())).returns(() => null).verifiable(Times.once());
+            nodeCacheMock.setup(nc => nc.get<nullable<KeyDependency[]>>(It.isAny())).returns(() => null).verifiable(Times.once());
             nodeCacheMock.setup(nc => nc.set(dependencyKey, [dependencyKeyMock.object], time)).returns(() => true).verifiable(Times.once());
+
+            cache.add(object, time);
+
+            conventionMock.verifyAll();
+            nodeCacheMock.verifyAll();
+        });
+
+        it("should add a KeyDependency to already existing array on the cache when object on nested property fits convention", () => {
+            var object = addRandomTypeToObject({ id: 1, nested: addRandomTypeToObject({ id: 2 }) });
+
+            var objectKey = `key for test -> ${object.id}`;
+            var nestedKey = `key for test -> ${object.nested.id}`;
+            var dependencyKey = `${nestedKey} -> Dependencies`;
+            var oldKeyDependency = Mock.ofType<KeyDependency>().object;
+            var keyDependency = Mock.ofType<KeyDependency>().object;
+            var time = 100;
+
+            objectInspectorMock.addObjectFoundCall(objectFound => objectFound(object));
+            objectInspectorMock.addObjectFoundCall(objectFound => objectFound(object.nested));
+
+            objectInspectorMock
+                .addKeyDependencyFoundCalls(dependencyKeyFound => dependencyKeyFound(object.nested, keyDependency));
+
+            conventionMock.setup(c => c.fitsConvention(object)).returns(() => true).verifiable(Times.atLeastOnce());
+            conventionMock.setup(c => c.fitsConvention(object.nested)).returns(() => true).verifiable(Times.atLeastOnce());
+
+            conventionMock.setup(c => c.createKey(object)).returns(() => objectKey).verifiable(Times.atLeastOnce());
+            conventionMock.setup(c => c.createKey(object.nested)).returns(() => nestedKey).verifiable(Times.atLeastOnce());
+
+            nodeCacheMock.setup(nc => nc.set(objectKey, object, time)).returns(() => true).verifiable(Times.once());
+            nodeCacheMock.setup(nc => nc.set(nestedKey, object.nested, time)).returns(() => true).verifiable(Times.once());
+
+            nodeCacheMock.setup(nc => nc.del(dependencyKey)).returns(() => 1).verifiable(Times.once());
+
+            nodeCacheMock.setup(nc => nc.get<nullable<KeyDependency[]>>(dependencyKey)).returns(() => [oldKeyDependency]).verifiable(Times.once());
+            nodeCacheMock.setup(nc => nc.set(dependencyKey, [oldKeyDependency, keyDependency], time)).returns(() => true).verifiable(Times.once());
+
+            cache.add(object, time);
+
+            conventionMock.verifyAll();
+            nodeCacheMock.verifyAll();
+        });
+
+        it("should replace when KeyDependency already exists", () => {
+            var object = addRandomTypeToObject({ id: 1, nested: addRandomTypeToObject({ id: 2 }) });
+
+            var objectKey = `key for test -> ${object.id}`;
+            var nestedKey = `key for test -> ${object.nested.id}`;
+            var dependencyKey = `${nestedKey} -> Dependencies`;
+            var oldKeyDependencyMock = Mock.ofType<KeyDependency>();
+            var keyDependencyMock = Mock.ofType<KeyDependency>();
+            var time = 100;
+
+            oldKeyDependencyMock.setup(keyDependency => keyDependency.dependentKey).returns(() => objectKey).verifiable();
+            keyDependencyMock.setup(keyDependency => keyDependency.dependentKey).returns(() => objectKey).verifiable();
+
+            objectInspectorMock.addObjectFoundCall(objectFound => objectFound(object));
+            objectInspectorMock.addObjectFoundCall(objectFound => objectFound(object.nested));
+
+            objectInspectorMock
+                .addKeyDependencyFoundCalls(dependencyKeyFound => dependencyKeyFound(object.nested, keyDependencyMock.object));
+
+            conventionMock.setup(c => c.fitsConvention(object)).returns(() => true).verifiable(Times.atLeastOnce());
+            conventionMock.setup(c => c.fitsConvention(object.nested)).returns(() => true).verifiable(Times.atLeastOnce());
+
+            conventionMock.setup(c => c.createKey(object)).returns(() => objectKey).verifiable(Times.atLeastOnce());
+            conventionMock.setup(c => c.createKey(object.nested)).returns(() => nestedKey).verifiable(Times.atLeastOnce());
+
+            nodeCacheMock.setup(nc => nc.set(objectKey, object, time)).returns(() => true).verifiable(Times.once());
+            nodeCacheMock.setup(nc => nc.set(nestedKey, object.nested, time)).returns(() => true).verifiable(Times.once());
+
+            nodeCacheMock.setup(nc => nc.del(dependencyKey)).returns(() => 1).verifiable(Times.once());
+
+            nodeCacheMock.setup(nc => nc.get<nullable<KeyDependency[]>>(dependencyKey)).returns(() => [oldKeyDependencyMock.object]).verifiable(Times.once());
+            nodeCacheMock.setup(nc => nc.set(dependencyKey, [keyDependencyMock.object], time)).returns(() => true).verifiable(Times.once());
 
             cache.add(object, time);
 
@@ -197,6 +272,5 @@ describe("Cache", () => {
             conventionMock.verifyAll();
             nodeCacheMock.verifyAll();
         });
-
     });
 });
