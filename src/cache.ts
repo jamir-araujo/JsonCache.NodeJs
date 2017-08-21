@@ -24,6 +24,8 @@ export default class Cache {
                 var key = this._convention.createKey(value);
                 this._cache.set(key, value, time);
 
+                this.updateDependencies(key, value);
+
                 return key;
             }
             else {
@@ -47,14 +49,36 @@ export default class Cache {
                 var key = this._convention.createKey(value);
                 this._cache.set(key, value, time);
 
+                this.updateDependencies(key, value);
+
                 return key;
             }
             else {
                 return null;
             }
         }, (value, keyDependency) => {
+            if (this._convention.fitsConvention(value)) {
+                var key = this._convention.createKey(value);
 
+                this.storeKeyDependency(key, keyDependency, time);
+            }
         });
+    }
+
+    private updateDependencies(key: string, value: Object): void {
+        var dependencyKey = this.createKeyForDependencies(key);
+
+        var dependencies = this._cache.get<KeyDependency[]>(dependencyKey);
+        if (dependencies) {
+            for (var index = 0; index < dependencies.length; index++) {
+                var keyDependency = dependencies[index];
+
+                var owner = this._cache.get(keyDependency.dependentKey);
+                if (owner) {
+                    keyDependency.setValue(owner, value);
+                }
+            }
+        }
     }
 
     private storeKeyDependency(key: string, keyDependency: KeyDependency, time: number): void {
@@ -62,8 +86,6 @@ export default class Cache {
 
         var dependencies = this._cache.get<KeyDependency[]>(dependencyKey);
         if (dependencies) {
-            this._cache.del(dependencyKey);
-
             var index = dependencies.findIndex(value => value.dependentKey === keyDependency.dependentKey);
             if (index >= 0) {
                 dependencies.splice(index, 1);
