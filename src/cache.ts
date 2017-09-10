@@ -15,7 +15,7 @@ export default class Cache {
         notNull(this._objectInspector, "_objectInspector");
     }
 
-    add(value: Object, time: number): void {
+    set(value: Object, time: number): void {
         notNull(value, "value");
         greaterThanZero(time, "time");
 
@@ -40,29 +40,8 @@ export default class Cache {
         });
     }
 
-    update(value: Object, time: number): void {
-        notNull(value, "value");
-        greaterThanZero(time, "time");
-
-        this._objectInspector.inspectObject(value, value => {
-            if (this._convention.fitsConvention(value)) {
-                var key = this._convention.createKey(value);
-                this._cache.set(key, value, time);
-
-                this.updateDependencies(key, value);
-
-                return key;
-            }
-            else {
-                return null;
-            }
-        }, (value, keyDependency) => {
-            if (this._convention.fitsConvention(value)) {
-                var key = this._convention.createKey(value);
-
-                this.storeKeyDependency(key, keyDependency, time);
-            }
-        });
+    get<T>(key: string): nullable<T> {
+        return this._cache.get<T>(key);
     }
 
     private updateDependencies(key: string, value: Object): void {
