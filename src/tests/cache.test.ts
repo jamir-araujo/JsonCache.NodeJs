@@ -7,6 +7,7 @@ import Cache from "../cache";
 import ObjectInspector from "../objectInspector";
 import { KeyDependency } from "../keyDependency";
 import { ObjectInspectorMock } from "./objectInspectorMock";
+import "./array.extensions";
 
 describe("Cache", () => {
     var cache: Cache;
@@ -283,12 +284,20 @@ describe("Cache", () => {
 
     describe("get<T>(string): T", () => {
 
+        it("should throw when keys is null", () => {
+            var key: any = null;
+            expect(() => cache.get(key))
+                .to
+                .throw("parameter key can not be null");
+        });
+
         it("should return null when key does not exists", () => {
             nodeCacheMock.setup(nc => nc.get<nullable<Object>>(It.isAny())).returns(() => null).verifiable();
 
             var result = cache.get<Object>("non-existing-key");
 
             assert.isNull(result, "result is not null");
+            nodeCacheMock.verifyAll();
         });
 
         it("should return the object when it exists", () => {
@@ -301,6 +310,105 @@ describe("Cache", () => {
 
             assert.isNotNull(result, "result is null");
             assert.equal(result, value, "result and value are not equal");
+            nodeCacheMock.verifyAll();
+        });
+    });
+
+    describe("remove(string): void", () => {
+
+        it("should throw when key is null", () => {
+            var key: any = null;
+            expect(() => cache.remove(key))
+                .to
+                .throw("parameter key can not be null");
+        });
+
+        it("should only call del for the given key when has no keyDependencies", () => {
+            var key = "key = 1";
+            var dependencyKey = `${key} -> Dependencies`;
+
+            nodeCacheMock.setup(nc => nc.get<nullable<KeyDependency[]>>(dependencyKey)).returns(() => null).verifiable();
+            nodeCacheMock.setup(nc => nc.del([key])).returns(() => 1).verifiable();
+
+            cache.remove(key);
+
+            nodeCacheMock.verifyAll();
+        });
+
+        it("should call del for the given key and for every dependencyKey", () => {
+            var key = "key = 1";
+            var dependencyKey = `${key} -> Dependencies`;
+
+            var key1Children = ["key = 2", "key = 3", "key = 4", "key = 5"];
+
+            var dependencyKeysObjs = key1Children.map(key => new DummyKeyDependency(key));
+            var key1ChildrenDK = key1Children.map(key => `${key} -> Dependencies`);
+
+            nodeCacheMock.setup(nc => nc.get<KeyDependency[]>(dependencyKey)).returns(() => dependencyKeysObjs).verifiable();
+
+            for (var i = 0; i < key1ChildrenDK.length; i++) {
+                nodeCacheMock.setup(nc => nc.get<nullable<KeyDependency[]>>(key1ChildrenDK[i])).returns(() => null).verifiable();
+            }
+
+            var keysToDelete = ["key = 1", "key = 2", "key = 3", "key = 4", "key = 5"];
+            nodeCacheMock.setup(nc => nc.del(keysToDelete)).returns(() => keysToDelete.length).verifiable();
+
+            cache.remove(key);
+
+            nodeCacheMock.verifyAll();
+        });
+
+        it("should call del for the given key and for every dependencyKey recursively", () => {
+            var key = "key = 1";
+            var dependencyKey = `${key} -> Dependencies`;
+
+            var key1Children = ["key = 2", "key = 3", "key = 4"];
+            var key1ChildrenObjs = key1Children.map(key => new DummyKeyDependency(key));
+            var key1ChildrenDK = key1Children.map(key1Child => `${key1Child} -> Dependencies`);
+
+            var key2Children = ["key = 5", "key = 6", "key = 7"];
+            var key2ChildrenObjs = key2Children.map(key => new DummyKeyDependency(key));
+
+            var key3Children = ["key = 5", "key = 8", "key = 9"];
+            var key3ChildrenObjs = key3Children.map(key => new DummyKeyDependency(key));
+
+            var key4Children = [] as string[];
+            var key4ChildrenObjs = key4Children.map(key => new DummyKeyDependency(key));
+
+            nodeCacheMock.setup(nc => nc.get<KeyDependency[]>(dependencyKey)).returns(() => key1ChildrenObjs).verifiable();
+            nodeCacheMock.setup(nc => nc.get<KeyDependency[]>(key1ChildrenDK[0])).returns(() => key2ChildrenObjs).verifiable();
+            nodeCacheMock.setup(nc => nc.get<KeyDependency[]>(key1ChildrenDK[1])).returns(() => key3ChildrenObjs).verifiable();
+            nodeCacheMock.setup(nc => nc.get<KeyDependency[]>(key1ChildrenDK[2])).returns(() => key4ChildrenObjs).verifiable();
+
+            var nullKeyDependencies = ["key = 5", "key = 6", "key = 7", "key = 8", "key = 9"].map(key => `${key} -> Dependencies`);
+            for (var i = 0; i < nullKeyDependencies.length; i++) {
+                nodeCacheMock.setup(nc => nc.get<nullable<KeyDependency[]>>(nullKeyDependencies[i])).returns(() => null).verifiable();
+            }
+
+            var keysToDelete = [key]
+                .concat(key1Children, key2Children, key3Children, key4Children)
+                .distinct();
+
+            var matchArray = It.is<any[]>(keys => !keysToDelete.except(keys).any() && !keys.except(keysToDelete).any())
+
+            nodeCacheMock.setup(nc => nc.del(matchArray)).returns(() => dependencyKey.length).verifiable();
+
+            cache.remove(key);
+
+            nodeCacheMock.verifyAll();
         });
     });
 });
+
+class DummyKeyDependency extends KeyDependency {
+    constructor(public dependentKey: string) {
+        super();
+    }
+
+    getValue(owner: Object): Object | null {
+        throw new Error("Method not implemented.");
+    }
+    setValue(owner: Object, value: any): void {
+        throw new Error("Method not implemented.");
+    }
+}

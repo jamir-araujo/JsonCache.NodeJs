@@ -41,7 +41,38 @@ export default class Cache {
     }
 
     get<T>(key: string): nullable<T> {
+        notNull(key, "key");
+
         return this._cache.get<T>(key);
+    }
+
+    remove(key: string): void {
+        notNull(key, "key");
+
+        var keys = new Set<string>();
+        this.loadDependencykeysRecursive(keys, key);
+
+        var keysToDelete: string[] = [];
+        keys.forEach(key => keysToDelete.push(key));
+
+        this._cache.del(keysToDelete);
+    }
+
+    private loadDependencykeysRecursive(keys: Set<string>, key: string): void {
+        if (keys.has(key)) {
+            return;
+        }
+
+        keys.add(key);
+
+        var dependenciesKey = this.createKeyForDependencies(key);
+        var dependencies = this._cache.get<KeyDependency[]>(dependenciesKey);
+        if (dependencies) {
+            for (var i = 0; i < dependencies.length; i++) {
+                var keyDependency = dependencies[i];
+                this.loadDependencykeysRecursive(keys, keyDependency.dependentKey);
+            }
+        }
     }
 
     private updateDependencies(key: string, value: Object): void {
