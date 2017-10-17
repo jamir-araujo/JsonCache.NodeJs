@@ -1,8 +1,12 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "typescript.check.tscVersion": false,
     "workbench.iconTheme": "vscode-icons",
     "vsicons.projectDetection.disableDetect": true,
     "terminal.integrated.shell.windows": "C:\\Windows\\Sysnative\\WindowsPowerShell\\v1.0\\powershell.exe",
-    "editor.renderWhitespace": "boundary"
+    "editor.renderWhitespace": "boundary",
+    "mocha.files.glob": "build/tests/**/*.js",
+    "mocha.options": {
+        "ui": "bdd",
+        "reporter": "spec"
+    }
 }
